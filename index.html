@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OncoCuida — diário local de sintomas, orientações de autocuidado e agenda de tratamento.">
+  <meta name="theme-color" content="#176e65">
+  <title>OncoCuida — Meu Diário de Sintomas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;display=swap" rel="stylesheet">
+  <style>
+:root{--ink:#173c3b;--muted:#526c68;--teal:#176e65;--line:#d6e4dd;--pale:#dfede7}
+*{box-sizing:border-box}body{margin:0;font-family:"DM Sans",sans-serif;color:var(--ink)}
+.app-shell{width:100%;min-height:100%;background:radial-gradient(circle at 92% 4%,#e3f0e8 0,transparent 42%),#f7f5ef}
+.display{font-family:Fraunces,serif}[hidden],.hidden{display:none!important}
+button{cursor:pointer}button:disabled{opacity:.65;cursor:wait}:focus-visible{outline:3px solid #b66d45;outline-offset:3px}
+.tab{border-bottom:3px solid transparent}.tab[aria-current=page]{border-color:var(--teal);background:#fff;color:var(--ink)}
+.surface{background:#fff;border:1px solid #e5eee8;box-shadow:0 12px 36px rgba(23,60,59,.065)}
+.question{border:1px solid #e1ece5;background:white;border-radius:20px;padding:18px;box-shadow:0 5px 18px rgba(23,60,59,.035)}
+.field{width:100%;min-height:48px;border:1px solid #c8d9d0;border-radius:14px;background:#fff;padding:12px 14px;color:var(--ink);font:inherit}
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:10px}
+.choice{position:relative;display:flex;align-items:center;gap:10px;min-height:52px;border:1px solid var(--line);border-radius:14px;padding:11px 13px;background:white;cursor:pointer;line-height:1.35;transition:background .16s,border-color .16s,box-shadow .16s}
+.choice:hover{background:#f5faf7}.choice:has(input:checked){border-color:var(--teal);background:var(--pale);box-shadow:inset 0 0 0 1px var(--teal)}
+.choice:has(input:focus-visible){outline:3px solid #b66d45;outline-offset:3px}
+.choice input{width:18px;height:18px;flex:none;accent-color:var(--teal);cursor:pointer}
+input[type=range]{width:100%;height:32px;accent-color:var(--teal);cursor:pointer}
+.symptom-card{display:flex;align-items:center;gap:12px;min-height:92px;border:1px solid var(--line);box-shadow:0 5px 18px rgba(23,60,59,.04);transition:transform .2s,background .2s}
+.symptom-card:hover{transform:translateY(-2px);background:#f1f8f3}.symptom-card.is-registered{background:#f1f8f3;border-color:#a9cfc1}
+.symptom-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:#e9f3eb;color:var(--teal)}.symptom-icon svg{width:21px;height:21px}
+.registered{display:none;align-items:center;gap:3px;margin-top:4px;font-size:12px;font-weight:700;color:var(--teal)}.is-registered .registered{display:flex}.registered svg{width:14px;height:14px}
+.guide-row{display:flex;gap:12px;padding:15px;border-radius:16px;background:#f1f8f3;line-height:1.6}.guide-row p{margin:0}.guide-warning{background:#fff1e9;border-left:4px solid #b66d45}.treatment-option{display:flex;align-items:center;gap:10px;min-height:58px;border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:#fff;cursor:pointer;font-weight:600;transition:background .16s,border-color .16s,box-shadow .16s}.treatment-option:has(input:checked){box-shadow:inset 0 0 0 2px currentColor}.treatment-option input{accent-color:currentColor}.treatment-option.last{color:var(--teal);background:#f1f8f3}.treatment-option.next{color:#4776a8;background:#eef5fc}.treatment-option.appointment{color:#a95f43;background:#fff1e9}.treatment-day{min-height:52px!important;font-size:15px}.treatment-day.is-today{box-shadow:inset 0 0 0 2px #b66d45}.treatment-day.is-selected{outline:3px solid var(--teal);outline-offset:1px}.treatment-confirm{border:1px solid #a9cfc1;background:#f1f8f3;border-radius:18px;padding:16px}.treatment-mark-row{border-left:5px solid var(--teal)}
+.about-copy,.app-shell p,.app-shell [role="alert"],.app-shell [data-template-id="fever-intro"],.app-shell [data-template-id$="-description"]{text-align:justify;text-justify:inter-word;overflow-wrap:anywhere;hyphens:auto}.app-shell .about-development-card,.app-shell .about-development-card p{text-align:center}.app-shell [data-template-id$="-description"]{display:block}
+/* A shared visual rhythm keeps every guidance topic easy to scan. */
+#guidance-detail article>h2{display:flex;align-items:center;gap:14px;line-height:1.15}
+#guidance-detail article>h2::before{display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:17px;background:#e9f3eb;color:#176e65;font-family:"DM Sans",sans-serif;font-size:25px;box-shadow:inset 0 0 0 1px #d6e4dd}
+#guide-fever>h2::before{content:"♨"}#guide-nausea>h2::before{content:"✦"}#guide-diarrhea>h2::before{content:"≋"}#guide-constipation>h2::before{content:"◌"}#guide-pain>h2::before{content:"＋"}#guide-mouth>h2::before{content:"◡"}
+#guidance-detail article>h3{margin-top:2rem;color:var(--ink)}
+#guidance-detail .guide-row{align-items:flex-start;gap:14px;padding:17px 18px;border:1px solid #dbe9e1;border-radius:18px;box-shadow:0 4px 14px rgba(23,60,59,.035)}
+#guidance-detail .guide-row>span:first-child{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:11px;background:#e9f3eb;color:var(--teal);font-size:18px;line-height:1}
+#guidance-detail .guide-row p{margin-top:3px}
+#guidance-detail .guide-warning{border-left:5px solid #b66d45;background:#fff1e9;box-shadow:0 7px 18px rgba(182,109,69,.09)}
+#guidance-detail .guide-warning>span:first-child{background:#f9dfd1;color:#a95f43}
+#guidance-detail .guide-warning p{font-weight:500}
+@media(max-width:390px){.symptom-card{gap:8px;padding:11px!important;min-height:100px}.symptom-icon{width:34px;height:34px}.symptom-name{font-size:14px}#guidance-detail article>h2{gap:10px}#guidance-detail article>h2::before{width:44px;height:44px;border-radius:14px;font-size:21px}#guidance-detail .guide-row{padding:14px 13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  
+  
+  
+ </head>
+ <body data-template-id="__page-root" class="w-full" style="background: rgb(247, 245, 239);">
+  <div class="app-shell w-full">
+   <div class="mx-auto w-full max-w-5xl px-4 pb-12 pt-6 sm:px-9 sm:pt-10">
+    <header class="mb-5">
+     <div data-template-id="brand-tag" class="canva-tag mb-4 inline-flex rounded-full px-4 py-2 font-semibold" style="background: rgb(223, 237, 231); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 14px;">UM ESPAÇO DE CUIDADO</div>
+     <h1 data-template-id="app-title" class="canva-banner display rounded-2xl px-5 py-4 text-center leading-tight shadow-lg" style="background: rgb(23, 110, 101); color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 48px;">OncoCuida</h1>
+    </header>
+    <nav aria-label="Navegação principal" class="mb-6 flex gap-2 border-b border-[#d7e4dd] pb-2">
+     <button id="tab-intro" type="button" aria-current="page" data-template-id="intro-tab" class="canva-tabs tab rounded-xl px-5 py-3 font-semibold" style="color: rgb(82, 108, 104); font-weight: 600; font-style: normal; font-size: 16px;">Início</button><button id="tab-about" type="button" aria-current="false" data-template-id="about-tab" class="canva-tabs tab rounded-xl px-5 py-3 font-semibold" style="color: rgb(82, 108, 104); font-weight: 600; font-style: normal; font-size: 16px;">Sobre</button>
+    </nav>
+    <main>
+     <section id="panel-intro" aria-labelledby="intro-heading">
+      <div data-template-id="intro-card" class="canva-card surface grid items-center gap-6 rounded-[28px] p-6 sm:grid-cols-[1fr_220px] sm:p-9" style="background: rgb(255, 255, 255);">
+       <div>
+        <h2 id="intro-heading" data-template-id="intro-heading" class="canva-text display" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 24px;">Um momento para cuidar de você</h2>
+        <p data-template-id="intro-body" class="canva-text mt-4 leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Durante o tratamento, é importante prestar atenção em como você está se sentindo. O OncoCuida está aqui para ajudar você a reconhecer e registrar possíveis sintomas e encontrar orientações para o seu cuidado.</p>
+        <button id="start-button" type="button" data-template-id="start-button" class="canva-button mt-6 w-full rounded-2xl px-6 py-4 font-bold sm:w-auto" style="background: rgb(23, 110, 101); color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Como você está se sentindo hoje?</button>
+       </div>
+       <svg class="mx-auto w-full max-w-[220px]" viewBox="0 0 240 220" fill="none" aria-hidden="true">
+        <circle cx="123" cy="111" r="96" fill="#E9F3EB"></circle><circle cx="192" cy="45" r="20" fill="#DCE9F8"></circle><path d="M193 36v18m-9-9h18" stroke="#4776A8" stroke-width="3" stroke-linecap="round"></path><path d="M53 178c3-42 30-66 69-66 42 0 67 25 69 66" fill="#81ADA1"></path><circle cx="120" cy="81" r="31" fill="#DBAD91"></circle><path d="M89 78c-1-26 14-42 36-42 19 0 32 13 32 33-15-1-26-7-33-16-7 14-18 21-35 25Z" fill="#173C3B"></path><path d="M108 95c8 7 17 7 24 0" stroke="#855F55" stroke-width="2.5" stroke-linecap="round"></path><rect x="103" y="139" width="40" height="65" rx="8" fill="#173C3B" transform="rotate(-12 103 139)"></rect><rect x="108" y="145" width="29" height="48" rx="3" fill="#DCE9F8" transform="rotate(-12 108 145)"></rect>
+       </svg>
+      </div>
+      <section class="mt-8" aria-labelledby="shortcuts-heading">
+       <h2 id="shortcuts-heading" data-template-id="shortcuts-heading" class="canva-text display mb-4" style="font-weight: 600; font-style: normal; font-size: 24px;">O que você deseja fazer?</h2>
+       <div class="grid gap-4 sm:grid-cols-3">
+        <button type="button" data-open="symptoms" data-template-id="shortcut-symptoms" class="canva-card flex min-h-40 flex-col items-start rounded-[22px] p-5 text-left" style="background: rgb(233, 243, 235);"><i data-lucide="clipboard-pen-line" class="mb-4" aria-hidden="true"></i><span data-template-id="shortcut-symptoms-title" class="canva-text font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 18px;">Registrar sintomas</span><span data-template-id="shortcut-symptoms-description" class="canva-text mt-2" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Conte como você está se sentindo.</span></button> <button type="button" data-open="guidance" data-template-id="shortcut-guidance" class="canva-card flex min-h-40 flex-col items-start rounded-[22px] p-5 text-left" style="background: rgb(234, 241, 248);"><i data-lucide="book-open" class="mb-4" aria-hidden="true"></i><span data-template-id="shortcut-guidance-title" class="canva-text font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 18px;">Orientações</span><span data-template-id="shortcut-guidance-description" class="canva-text mt-2" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Encontre dicas e cuidados para o dia a dia.</span></button> <button type="button" data-open="treatment" data-template-id="shortcut-treatment" class="canva-card flex min-h-40 flex-col items-start rounded-[22px] p-5 text-left" style="background: rgb(240, 244, 236);"><i data-lucide="calendar-days" class="mb-4" aria-hidden="true"></i><span data-template-id="shortcut-treatment-title" class="canva-text font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 18px;">Minha agenda de tratamento</span><span data-template-id="shortcut-treatment-description" class="canva-text mt-2" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Organize as datas dos seus ciclos e consultas.</span></button>
+       </div>
+      </section>
+      <aside data-template-id="safety-banner" class="canva-banner mt-7 rounded-2xl border-l-4 border-[#b66d45] p-5" style="background: rgb(255, 241, 233);">
+       <div class="flex gap-3">
+        <i data-lucide="triangle-alert" class="shrink-0" aria-hidden="true"></i>
+        <div>
+         <h2 data-template-id="safety-title" class="canva-text font-bold" style="color: rgb(112, 60, 40); font-weight: 700; font-style: normal; font-size: 24px;">Quando procurar ajuda?</h2>
+         <p data-template-id="safety-body" class="canva-text mt-2 leading-relaxed" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Não espere a próxima consulta se apresentar febre, falta de ar, sangramentos ou sintomas intensos. Entre em contato com sua equipe de saúde ou procure atendimento imediatamente, conforme a gravidade dos sintomas.</p>
+        </div>
+       </div>
+      </aside>
+      <aside data-template-id="welcome-note" class="canva-card mt-5 flex gap-3 rounded-2xl p-5" style="background: rgb(223, 237, 231);">
+       <i data-lucide="heart" class="shrink-0" aria-hidden="true"></i>
+       <div>
+        <p data-template-id="welcome-note-title" class="canva-text font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 16px;">Cuidar de você também é prestar atenção aos sinais do seu corpo.</p>
+        <p data-template-id="welcome-note-body" class="canva-text mt-1" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Registre, informe e compartilhe suas experiências com a equipe de saúde.</p>
+       </div>
+      </aside>
+     </section>
+     <section id="panel-about" hidden="" aria-labelledby="about-heading">
+      <button type="button" data-home="" data-template-id="about-home" class="canva-button mb-5 rounded-xl px-4 py-3 font-semibold" style="background: rgb(223, 237, 231); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 16px;">← Voltar ao início</button>
+      <div class="space-y-5">
+       <header data-template-id="about-hero" class="canva-card surface overflow-hidden rounded-[28px] p-6 sm:p-9" style="background: rgb(255, 255, 255);">
+        <div class="grid items-center gap-6 sm:grid-cols-[1fr_190px]">
+         <div>
+          <p data-template-id="about-eyebrow" class="canva-text mb-3 font-semibold uppercase tracking-[0.14em]" style="color: rgb(23, 110, 101); font-weight: 600; font-style: normal; font-size: 13px;">UM ESPAÇO DE CUIDADO</p>
+          <h2 id="about-heading" data-template-id="about-heading" class="canva-text display" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 24px;">Conheça o OncoCuida</h2>
+          <p data-template-id="about-subtitle" class="canva-text mt-3 leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 17px;">Um espaço de informação, acolhimento e apoio ao seu autocuidado.</p>
+         </div>
+         <svg class="mx-auto w-full max-w-[180px]" viewBox="0 0 200 180" fill="none" aria-hidden="true">
+          <circle cx="100" cy="90" r="76" fill="#E9F3EB"></circle><rect x="67" y="38" width="67" height="108" rx="12" fill="#173C3B"></rect><rect x="73" y="46" width="55" height="88" rx="7" fill="#DCE9F8"></rect><circle cx="100" cy="126" r="4" fill="#81ADA1"></circle><path d="M49 126c10-28 26-40 48-40 24 0 39 13 49 40" fill="#81ADA1"></path><circle cx="96" cy="65" r="18" fill="#DBAD91"></circle><path d="M78 64c1-16 10-25 22-25 12 0 20 8 20 20-10-1-17-5-22-11-4 8-10 13-20 16Z" fill="#173C3B"></path><path d="M31 49h18m-9-9v18" stroke="#4776A8" stroke-width="3" stroke-linecap="round"></path><path d="M157 32c8 0 14 6 14 14s-6 14-14 14c-8 0-14-6-14-14s6-14 14-14Z" fill="#DCE9F8"></path><path d="m152 46 4 4 7-9" stroke="#4776A8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+         </svg>
+        </div>
+       </header>
+       <article data-template-id="about-why-card" class="canva-card surface rounded-[24px] p-6 sm:p-8" style="background: rgb(255, 255, 255);">
+        <div class="flex items-start gap-4">
+         <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#dfede7] text-[#176e65]"><i data-lucide="heart-handshake" aria-hidden="true"></i></span>
+         <div>
+          <h3 data-template-id="about-why-heading" class="canva-text display" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 21px;">Por que o OncoCuida foi criado?</h3>
+          <p data-template-id="about-body-1" class="canva-text about-copy mt-3 leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 19px;">Durante o tratamento oncológico, é possível que você apresente alguns efeitos colaterais que podem surgir não apenas durante a administração dos medicamentos, mas também nos dias ou semanas seguintes. Reconhecer esses sinais e sintomas é muito importante para que você saiba como agir, quais cuidados pode adotar no dia a dia e em que momento deve procurar a equipe de saúde.</p>
+         </div>
+        </div>
+       </article>
+       <article data-template-id="about-help-card" class="canva-card surface rounded-[24px] p-6 sm:p-8" style="background: rgb(255, 255, 255);">
+        <div class="flex items-start gap-4">
+         <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#dce9f8] text-[#4776a8]"><i data-lucide="clipboard-pen-line" aria-hidden="true"></i></span>
+         <div class="min-w-0">
+          <h3 data-template-id="about-help-heading" class="canva-text display" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 21px;">Como o aplicativo pode ajudar?</h3>
+          <p data-template-id="about-body-2" class="canva-text about-copy mt-4 leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 19px;">Este aplicativo foi desenvolvido para ser uma ferramenta de apoio ao seu autocuidado, ajudando você a compreender melhor e lidar com os possíveis efeitos do tratamento. Aqui, você encontrará um espaço reservado e seguro para registrar os sintomas que perceber ao longo dos dias, além de uma aba com orientações e cuidados que podem ajudar a aliviar ou prevenir algumas dessas manifestações. Os registros também foram pensados para facilitar a comunicação com a equipe de saúde durante as consultas. Sabemos que, ao longo dos dias, algumas informações sobre os sintomas podem acabar sendo esquecidas ou não mencionadas durante o atendimento. Por isso, anotar o que você sente, quando os sintomas aparecem e como eles evoluem pode ajudar a resgatar essas informações e compartilhá-las com a equipe, contribuindo para uma avaliação mais completa do seu estado de saúde e das suas necessidades.</p>
+         </div>
+        </div>
+       </article>
+       <aside data-template-id="about-safety-card" class="canva-banner rounded-[24px] bg-[#fff1e9] p-6 sm:p-8" style="background: rgb(255, 241, 233);">
+        <div class="flex items-start gap-4">
+         <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#f9dfd1] text-[#a95f43]"><i data-lucide="info" aria-hidden="true"></i></span>
+         <div>
+          <h3 data-template-id="about-safety-heading" class="canva-text display" style="color: rgb(112, 60, 40); font-weight: 600; font-style: normal; font-size: 21px;">Importante!</h3>
+          <p data-template-id="about-safety-body" class="canva-text about-copy mt-3 leading-relaxed" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">O aplicativo é uma ferramenta de apoio ao seu autocuidado. Ele não substitui a avaliação dos profissionais de saúde. Sempre que necessário, procure a equipe responsável pelo seu tratamento.</p>
+         </div>
+        </div>
+       </aside>
+       <section data-template-id="about-development-card" class="about-development-card canva-card surface rounded-[24px] p-6 text-center sm:p-8" style="background: rgb(255, 255, 255);">
+        <i data-lucide="graduation-cap" class="mx-auto mb-4 h-12 w-12 text-[#176e65]" aria-hidden="true"></i>
+        <p data-template-id="about-development-label" class="canva-text text-base" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Desenvolvido por</p>
+        <h3 data-template-id="about-development-name" class="canva-text display mt-2 text-xl font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 22px;">Jéssica de Barros Dória Barcellos</h3>
+        <p data-template-id="about-development-role" class="canva-text mt-2 text-sm text-[#526c68]" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Farmacêutica – Residência em Atenção em Oncologia</p>
+        <div class="mx-auto my-6 h-px w-24 bg-[#d6e4dd]" aria-hidden="true"></div>
+        <h4 data-template-id="about-collaboration-heading" class="canva-text text-lg font-bold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 18px;">Colaboração</h4>
+        <p data-template-id="about-collaborator-1" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Prof. Dr. Tácio de Mendonça Lima</p>
+        <p data-template-id="about-collaborator-2" class="canva-text mt-1" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Farmacêutica Priscilla Joplin Ciodaro</p>
+        <p data-template-id="about-institution" class="canva-text mt-5 text-sm text-[#526c68]" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Hospital Universitário Antônio Pedro (HUAP)
+Universidade Federal Fluminense
+</p>
+       </section>
+      </div>
+     </section>
+     <section id="panel-symptoms" hidden="" aria-label="Diário e registro de sintomas">
+      <button type="button" data-symptoms-home="" data-template-id="symptoms-home-button" class="canva-button mb-4 rounded-xl px-4 py-3 font-semibold" style="background: rgb(223, 237, 231); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 16px;">← Voltar ao diário de sintomas</button>
+      <div data-template-id="symptoms-card" class="canva-card surface rounded-[28px] p-4 sm:p-10" style="background: rgb(255, 255, 255);">
+       <div id="symptom-home">
+        <h2 data-template-id="symptoms-heading" class="canva-text display" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 24px;">Diário de sintomas</h2>
+        <aside class="mt-5 flex items-start gap-3 rounded-xl border border-[#e0ebe5] bg-[#f6f9f7] px-4 py-3">
+         <i data-lucide="shield-check" class="mt-0.5 shrink-0 text-[#176e65]" aria-hidden="true"></i>
+         <p data-template-id="device-privacy" class="canva-text leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Seus registros ficam salvos neste dispositivo. Evite apagar os dados do navegador para não perder suas anotações.</p>
+        </aside>
+        <h3 data-template-id="choose-heading" class="canva-text mb-4 mt-8 font-bold" style="color: rgb(23, 60, 59); font-weight: 700; font-style: normal; font-size: 19px;">Como você está se sentindo?</h3>
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
+         <button type="button" data-symptom="Náusea" data-template-id="choose-nausea" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="waves" aria-hidden="true"></i></span><span><span data-template-id="choose-nausea-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Náusea</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Febre" data-template-id="choose-fever" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="thermometer" aria-hidden="true"></i></span><span><span data-template-id="choose-fever-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Febre</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Dor" data-template-id="choose-bodyache" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="activity" aria-hidden="true"></i></span><span><span data-template-id="choose-bodyache-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Dor</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Feridas na boca" data-template-id="choose-mouth-sores" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="smile" aria-hidden="true"></i></span><span><span data-template-id="choose-mouth-sores-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Feridas na boca</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Prisão de ventre" data-template-id="choose-constipation" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="circle-minus" aria-hidden="true"></i></span><span><span data-template-id="choose-constipation-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Prisão de ventre</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Diarreia" data-template-id="choose-diarrhea" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="droplets" aria-hidden="true"></i></span><span><span data-template-id="choose-diarrhea-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Diarreia</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button> <button type="button" data-symptom="Manchas roxas no corpo" data-template-id="choose-bruising" class="canva-card symptom-card rounded-2xl p-4 text-left" style="background: rgb(255, 255, 255);"><span class="symptom-icon"><i data-lucide="scan-heart" aria-hidden="true"></i></span><span><span data-template-id="choose-bruising-name" class="canva-text symptom-name block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Manchas roxas no corpo</span><span class="registered"><i data-lucide="circle-check" aria-hidden="true"></i>Registrado</span></span></button>
+        </div>
+        <button id="open-local-history" type="button" data-template-id="view-local-history" class="canva-button mt-7 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-[#aacbbe] px-5 py-4 font-semibold" style="background: rgb(241, 248, 243); color: rgb(23, 110, 101);"><i data-lucide="calendar-days" class="h-5 w-5" aria-hidden="true"></i><span data-template-id="view-local-history-text" class="canva-text" style="color: rgb(23, 110, 101); font-weight: 600; font-style: normal; font-size: 16px;">Consultar meu histórico de sintomas</span></button>
+        <p id="home-status" role="status" aria-live="polite" class="mt-3 min-h-6 text-[#9b432f]"></p>
+       </div>
+       <div id="symptom-form-screen" hidden="">
+        <h2 data-template-id="local-form-heading" class="canva-text display" style="font-weight: 600; font-style: normal; font-size: 24px;">Registro de sintomas</h2>
+        <p id="selected-symptom" class="mt-3 inline-flex rounded-full bg-[#dfede7] px-4 py-2 font-bold text-[#176e65]" aria-live="polite"></p>
+        <form id="local-form" class="mt-6 space-y-4">
+         <div id="intensity-fields" class="question">
+          <label data-template-id="local-intensity-label" for="local-intensity" class="canva-text mb-4 block font-semibold" style="color: rgb(23, 60, 59); font-weight: 600; font-style: normal; font-size: 16px;">Qual é a intensidade do sintoma?</label><input id="local-intensity" type="range" min="0" max="10" value="5" aria-describedby="local-intensity-help">
+          <div class="mt-1 flex justify-between gap-3 text-sm font-semibold text-[#526c68]">
+           <span>0 · Nenhuma</span><span>10 · Muito intensa</span>
+          </div>
+          <div class="mt-4 flex items-center gap-3">
+           <span data-template-id="intensity-current-label" class="canva-text" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Valor selecionado:</span><output id="intensity-value" for="local-intensity" class="min-w-12 rounded-xl bg-[#dfede7] px-3 py-2 text-center font-bold text-[#176e65]">5</output>
+          </div>
+          <p id="local-intensity-help" data-template-id="local-intensity-help" class="canva-text mt-3 leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Deslize para escolher um número de 0 a 10. Use 0 quando não sentir o sintoma e 10 quando ele estiver muito intenso.</p>
+         </div>
+         <div id="pain-fields" hidden="" class="space-y-4">
+          <fieldset class="question">
+           <legend data-template-id="pain-location-label" class="canva-text mb-2 font-semibold">Onde você está sentindo dor?</legend>
+           <p data-template-id="pain-location-help" class="canva-text mb-3 text-sm">Selecione uma ou mais opções.</p>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="pain-location" value="Cabeça"><span data-template-id="pain-location-head" class="canva-text">Cabeça</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Peito"><span data-template-id="pain-location-chest" class="canva-text">Peito</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Abdômen (barriga)"><span data-template-id="pain-location-abdomen" class="canva-text">Abdômen (barriga)</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Costas"><span data-template-id="pain-location-back" class="canva-text">Costas</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Braços"><span data-template-id="pain-location-arms" class="canva-text">Braços</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Pernas"><span data-template-id="pain-location-legs" class="canva-text">Pernas</span></label><label class="choice"><input type="checkbox" name="pain-location" value="Ossos ou articulações"><span data-template-id="pain-location-bones" class="canva-text">Ossos ou articulações</span></label><label class="choice"><input id="pain-location-other-check" type="checkbox" name="pain-location" value="Outra região"><span data-template-id="pain-location-other" class="canva-text">Outra região</span></label>
+           </div>
+           <div id="pain-location-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="pain-location-other-label" for="pain-location-other-text" class="canva-text mb-2 block">Especifique a região</label><input id="pain-location-other-text" class="field" type="text">
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="pain-quality-label" class="canva-text mb-3 font-semibold">Como você descreveria sua dor?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="pain-quality" value="Pontada ou fisgada"><span data-template-id="pain-quality-stab" class="canva-text">Pontada ou fisgada</span></label><label class="choice"><input type="checkbox" name="pain-quality" value="Queimação ou ardência"><span data-template-id="pain-quality-burning" class="canva-text">Queimação ou ardência</span></label><label class="choice"><input type="checkbox" name="pain-quality" value="Aperto ou pressão"><span data-template-id="pain-quality-pressure" class="canva-text">Aperto ou pressão</span></label><label class="choice"><input type="checkbox" name="pain-quality" value="Dor latejante"><span data-template-id="pain-quality-throbbing" class="canva-text">Dor latejante</span></label><label class="choice"><input type="checkbox" name="pain-quality" value="Dor em choque ou formigamento"><span data-template-id="pain-quality-electric" class="canva-text">Dor em choque ou formigamento</span></label><label class="choice"><input type="checkbox" name="pain-quality" value="Dor constante"><span data-template-id="pain-quality-constant" class="canva-text">Dor constante</span></label><label class="choice"><input id="pain-quality-other-check" type="checkbox" name="pain-quality" value="Outro tipo"><span data-template-id="pain-quality-other" class="canva-text">Outro tipo</span></label>
+           </div>
+           <div id="pain-quality-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="pain-quality-other-label" for="pain-quality-other-text" class="canva-text mb-2 block">Descreva o outro tipo</label><input id="pain-quality-other-text" class="field" type="text">
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="pain-frequency-label" class="canva-text mb-3 font-semibold">Com que frequência você sente essa dor?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="pain-frequency" value="Apenas uma vez" required=""><span data-template-id="pain-frequency-once" class="canva-text">Apenas uma vez</span></label><label class="choice"><input type="radio" name="pain-frequency" value="Algumas vezes ao dia"><span data-template-id="pain-frequency-some" class="canva-text">Algumas vezes ao dia</span></label><label class="choice"><input type="radio" name="pain-frequency" value="Na maior parte do dia"><span data-template-id="pain-frequency-most" class="canva-text">Na maior parte do dia</span></label><label class="choice"><input type="radio" name="pain-frequency" value="O tempo todo (dor contínua)"><span data-template-id="pain-frequency-constant" class="canva-text">O tempo todo (dor contínua)</span></label>
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="pain-impact-label" class="canva-text mb-3 font-semibold">Essa dor está atrapalhando suas atividades diárias?</legend>
+           <div class="space-y-2">
+            <label class="choice"><input type="radio" name="pain-impact" value="Não, consigo realizar minhas atividades normalmente." required=""><span data-template-id="pain-impact-no" class="canva-text">Não, consigo realizar minhas atividades normalmente.</span></label><label class="choice"><input type="radio" name="pain-impact" value="Sim, mas consigo realizar minhas atividades."><span data-template-id="pain-impact-some" class="canva-text">Sim, mas consigo realizar minhas atividades.</span></label><label class="choice"><input type="radio" name="pain-impact" value="Sim, tenho dificuldade para realizar minhas atividades."><span data-template-id="pain-impact-difficult" class="canva-text">Sim, tenho dificuldade para realizar minhas atividades.</span></label><label class="choice"><input type="radio" name="pain-impact" value="Sim, não consigo realizar minhas atividades."><span data-template-id="pain-impact-none" class="canva-text">Sim, não consigo realizar minhas atividades.</span></label>
+           </div>
+          </fieldset>
+          <div class="question">
+           <label data-template-id="pain-notes-label" for="pain-notes" class="canva-text mb-2 block font-semibold">Você percebe algo que melhora ou piora sua dor?</label>
+           <p data-template-id="pain-notes-help" class="canva-text mb-3 text-sm">Conte se alguma posição, movimento, atividade ou medicamento parece melhorar ou piorar a dor.</p>
+           <textarea id="pain-notes" rows="3" maxlength="1000" class="field"></textarea>
+          </div>
+         </div>
+         <div id="fever-intro" data-template-id="fever-intro" class="canva-banner rounded-2xl p-5 leading-relaxed" hidden="" style="background: rgb(241, 248, 243); color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Durante o tratamento, as defesas do organismo podem diminuir, aumentando o risco de infecções. Por isso, febre ou outros sinais de infecção precisam de atenção.</div>
+         <div id="fever-fields" hidden="" class="space-y-4">
+          <div class="question">
+           <label data-template-id="fever-temperature-label" for="fever-temperature" class="canva-text mb-2 block font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Qual foi a sua temperatura?</label><input id="fever-temperature" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 38,2" class="field" aria-describedby="fever-temperature-help fever-alert">
+           <p id="fever-temperature-help" data-template-id="fever-temperature-help" class="canva-text mt-2" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 14px;">Informe a temperatura em ºC, se você a mediu. Pode usar vírgula ou ponto.</p>
+           <div id="fever-alert" data-template-id="fever-alert" role="alert" hidden="" class="canva-banner mt-3 rounded-xl border-l-4 border-[#9b432f] p-4 font-bold" style="background: rgb(255, 241, 233); color: rgb(112, 60, 40); font-weight: 700; font-style: normal; font-size: 16px;">A temperatura informada é igual ou maior que 37,8 ºC. Busque atendimento de emergência imediatamente. Este aplicativo não avisa a equipe de saúde</div>
+          </div>
+          <fieldset class="question">
+           <legend data-template-id="fever-associated-legend" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você também está sentindo algum destes sintomas? Selecione quantos quiser.</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="fever-associated" value="Calafrios"><span data-template-id="fever-chills" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Calafrios</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Tosse"><span data-template-id="fever-cough" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Tosse</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Dor na garganta"><span data-template-id="fever-throat" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dor na garganta</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Ardência/dor ao urinar"><span data-template-id="fever-urination" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Ardência/dor ao urinar</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Nariz entupido"><span data-template-id="fever-stuffy-nose" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Nariz entupido</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Dor de cabeça"><span data-template-id="fever-headache" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dor de cabeça</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Dor no corpo"><span data-template-id="fever-bodyache" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dor no corpo</span></label><label class="choice"><input type="checkbox" name="fever-associated" value="Mau estar"><span data-template-id="fever-malaise" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Mau estar</span></label><label class="choice"><input id="fever-other-check" type="checkbox" name="fever-associated" value="Outros"><span data-template-id="fever-other-option" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Outros</span></label>
+           </div>
+           <div id="fever-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="fever-other-label" for="fever-other-text" class="canva-text mb-2 block" style="font-weight: 400; font-style: normal; font-size: 16px;">Quais outros sintomas?</label><textarea id="fever-other-text" rows="3" maxlength="500" class="field"></textarea>
+           </div>
+          </fieldset>
+         </div>
+         <div id="nausea-fields" hidden="" class="space-y-4">
+          <fieldset class="question">
+           <legend data-template-id="nausea-liquids-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você está conseguindo beber líquidos?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="nausea-liquids" value="Normalmente" required=""><span data-template-id="liquids-normal" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Normalmente</span></label><label class="choice"><input type="radio" name="nausea-liquids" value="Menos que o habitual"><span data-template-id="liquids-less" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Menos que o habitual</span></label><label class="choice"><input type="radio" name="nausea-liquids" value="Quase nada"><span data-template-id="liquids-almost" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Quase nada</span></label><label class="choice"><input type="radio" name="nausea-liquids" value="Nada"><span data-template-id="liquids-none" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Nada</span></label>
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="nausea-food-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você está conseguindo se alimentar normalmente?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="nausea-food" value="Normalmente" required=""><span data-template-id="food-normal" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Normalmente</span></label><label class="choice"><input type="radio" name="nausea-food" value="Menos que o habitual"><span data-template-id="food-less" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Menos que o habitual</span></label><label class="choice"><input type="radio" name="nausea-food" value="Quase nada"><span data-template-id="food-almost" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Quase nada</span></label><label class="choice"><input type="radio" name="nausea-food" value="Nada"><span data-template-id="food-none" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Nada</span></label>
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="nausea-frequency-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Com que frequência você tem sentido náusea?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="nausea-frequency" value="Apenas uma vez" checked=""><span data-template-id="nausea-once" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Apenas uma vez</span></label><label class="choice"><input type="radio" name="nausea-frequency" value="Várias vezes ao dia"><span data-template-id="nausea-often" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Várias vezes ao dia</span></label><label class="choice"><input type="radio" name="nausea-frequency" value="O dia todo"><span data-template-id="nausea-all-day" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">O dia todo</span></label>
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="nausea-vomit-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Quantas vezes você vomitou nas últimas 24 horas?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="nausea-vomit" value="Nenhuma vez" required=""><span data-template-id="vomit-none" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Nenhuma vez</span></label><label class="choice"><input type="radio" name="nausea-vomit" value="Apenas uma vez"><span data-template-id="vomit-once" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Apenas uma vez</span></label><label class="choice"><input type="radio" name="nausea-vomit" value="Várias vezes"><span data-template-id="vomit-many" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Várias vezes</span></label>
+           </div>
+          </fieldset>
+          <div id="nausea-alert" data-template-id="nausea-alert" role="alert" hidden="" class="canva-banner rounded-xl border-l-4 border-[#9b432f] p-4 font-bold" style="background: rgb(255, 241, 233); color: rgb(112, 60, 40); font-weight: 700; font-style: normal; font-size: 16px;">Procure a emergência imediatamente. Você informou que não consegue beber líquidos nem se alimentar e vomitou várias vezes nas últimas 24 horas. Este aplicativo não faz diagnósticos nem avisa a equipe de saúde.</div>
+         </div>
+         <div id="diarrhea-fields" hidden="" class="space-y-4">
+          <fieldset class="question">
+           <legend data-template-id="diarrhea-frequency-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Quantas vezes você evacuou nas últimas 24 horas?</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="radio" name="diarrhea-frequency" value="Apenas uma vez" checked=""><span data-template-id="diarrhea-once" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Apenas uma vez</span></label><label class="choice"><input type="radio" name="diarrhea-frequency" value="Poucas vezes"><span data-template-id="diarrhea-few" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Poucas vezes</span></label><label class="choice"><input type="radio" name="diarrhea-frequency" value="Muitas vezes"><span data-template-id="diarrhea-many" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Muitas vezes</span></label>
+           </div>
+          </fieldset>
+          <fieldset class="question">
+           <legend data-template-id="diarrhea-associated-legend" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você também está sentindo algum destes sintomas? Selecione quantos quiser.</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="diarrhea-associated" value="Fezes líquidas"><span data-template-id="diarrhea-liquid" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Fezes líquidas</span></label><label class="choice"><input type="checkbox" name="diarrhea-associated" value="Dor abdominal"><span data-template-id="diarrhea-pain" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dor abdominal</span></label><label class="choice"><input type="checkbox" name="diarrhea-associated" value="Sangue nas fezes"><span data-template-id="diarrhea-blood" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Sangue nas fezes</span></label><label class="choice"><input id="diarrhea-other-check" type="checkbox" name="diarrhea-associated" value="Outros"><span data-template-id="diarrhea-other-option" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Outros</span></label>
+           </div>
+           <div id="diarrhea-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="diarrhea-other-label" for="diarrhea-other-text" class="canva-text mb-2 block" style="font-weight: 400; font-style: normal; font-size: 16px;">Descreva o outro sintoma</label><textarea id="diarrhea-other-text" rows="3" maxlength="500" class="field"></textarea>
+           </div>
+          </fieldset>
+         </div>
+         <div id="constipation-fields" hidden="">
+          <fieldset class="question">
+           <legend data-template-id="constipation-associated-legend" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você também está sentindo algum destes sintomas? Selecione quantos quiser.</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="constipation-associated" value="Fezes endurecidas"><span data-template-id="constipation-hard" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Fezes endurecidas</span></label><label class="choice"><input type="checkbox" name="constipation-associated" value="Dor abdominal"><span data-template-id="constipation-pain" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dor abdominal</span></label><label class="choice"><input type="checkbox" name="constipation-associated" value="Barriga aumentada"><span data-template-id="constipation-swollen" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Barriga aumentada</span></label><label class="choice"><input type="checkbox" name="constipation-associated" value="Sangue nas fezes"><span data-template-id="constipation-blood" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Sangue nas fezes</span></label><label class="choice"><input id="constipation-other-check" type="checkbox" name="constipation-associated" value="Outros"><span data-template-id="constipation-other-option" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Outros</span></label>
+           </div>
+           <div id="constipation-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="constipation-other-label" for="constipation-other-text" class="canva-text mb-2 block" style="font-weight: 400; font-style: normal; font-size: 16px;">Descreva o outro sintoma</label><textarea id="constipation-other-text" rows="3" maxlength="500" class="field"></textarea>
+           </div>
+          </fieldset>
+         </div>
+         <div id="mouth-fields" hidden="">
+          <fieldset class="question">
+           <legend data-template-id="mouth-associated-legend" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Você também está sentindo algum destes sintomas? Selecione quantos quiser.</legend>
+           <div class="choice-grid">
+            <label class="choice"><input type="checkbox" name="mouth-associated" value="Feridas nos lábios"><span data-template-id="mouth-lips" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Feridas nos lábios</span></label><label class="choice"><input type="checkbox" name="mouth-associated" value="Feridas nas bochechas"><span data-template-id="mouth-cheeks" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Feridas nas bochechas</span></label><label class="choice"><input type="checkbox" name="mouth-associated" value="Feridas nas gengivas"><span data-template-id="mouth-gums" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Feridas nas gengivas</span></label><label class="choice"><input type="checkbox" name="mouth-associated" value="Dificuldade para engolir"><span data-template-id="mouth-swallow" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dificuldade para engolir</span></label><label class="choice"><input type="checkbox" name="mouth-associated" value="Sangramento"><span data-template-id="mouth-bleeding" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Sangramento</span></label><label class="choice"><input id="mouth-other-check" type="checkbox" name="mouth-associated" value="Outros"><span data-template-id="mouth-other-option" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Outros</span></label>
+           </div>
+           <div id="mouth-other-wrap" hidden="" class="mt-4">
+            <label data-template-id="mouth-other-label" for="mouth-other-text" class="canva-text mb-2 block" style="font-weight: 400; font-style: normal; font-size: 16px;">Descreva o outro sintoma</label><textarea id="mouth-other-text" rows="3" maxlength="500" class="field"></textarea>
+           </div>
+          </fieldset>
+         </div>
+         <fieldset id="general-frequency-wrap" class="question">
+          <legend data-template-id="local-frequency-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Com que frequência isso está acontecendo?</legend>
+          <div class="choice-grid">
+           <label class="choice"><input type="radio" name="local-frequency" value="Apenas uma vez" checked=""><span data-template-id="frequency-once" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Apenas uma vez</span></label><label class="choice"><input type="radio" name="local-frequency" value="Várias vezes ao dia"><span data-template-id="frequency-often" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Várias vezes ao dia</span></label><label class="choice"><input type="radio" name="local-frequency" value="O dia todo"><span data-template-id="frequency-all-day" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">O dia todo</span></label>
+          </div>
+         </fieldset>
+         <p id="local-status" role="status" aria-live="polite" class="min-h-6 text-[#9b432f]"></p>
+         <button type="submit" data-template-id="local-save" class="canva-button w-full rounded-2xl px-6 py-4 font-bold" style="background: rgb(23, 110, 101); color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Salvar neste dispositivo</button><button id="cancel-local" type="button" data-template-id="local-cancel" class="canva-button w-full rounded-2xl border border-[#c8d9d0] px-6 py-4 font-semibold" style="background: rgb(255, 255, 255); color: rgb(82, 108, 104); font-weight: 600; font-style: normal; font-size: 16px;">Cancelar</button>
+        </form>
+       </div>
+       <div id="symptom-history-screen" hidden="">
+        <h2 data-template-id="local-history-heading" class="canva-text display" style="font-weight: 600; font-style: normal; font-size: 24px;">Meu Histórico</h2>
+        <p data-template-id="local-history-help" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Registros guardados no navegador deste dispositivo.</p>
+        <p id="local-empty" data-template-id="local-empty" class="canva-text mt-6" hidden="" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Você ainda não possui marcações. Selecione uma data no calendário para começar a organizar sua agenda.</p>
+        <div id="local-record-list" class="mt-6 max-h-96 space-y-3 overflow-y-auto" aria-live="polite"></div>
+        <p id="history-status" role="status" aria-live="polite" class="mt-4 min-h-6 text-[#9b432f]"></p>
+        <button id="new-local" type="button" data-template-id="local-new" class="canva-button mt-5 w-full rounded-2xl px-6 py-4 font-bold" style="background: rgb(23, 110, 101); color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Novo registro</button><button id="request-clear" type="button" data-template-id="local-clear" class="canva-button mt-3 w-full rounded-2xl border border-[#e5bbae] px-6 py-4 font-semibold" style="background: rgb(255, 255, 255); color: rgb(155, 67, 47); font-weight: 400; font-style: normal; font-size: 16px;">Apagar todo o histórico</button>
+        <div id="clear-confirmation" hidden="" class="mt-4 rounded-2xl border border-[#e5bbae] bg-[#fff1e9] p-5">
+         <p data-template-id="clear-question" class="canva-text mb-4 font-semibold" style="color: rgb(112, 60, 40); font-weight: 600; font-style: normal; font-size: 16px;">Apagar permanentemente todos os registros desta aba neste dispositivo?</p>
+         <div class="flex flex-wrap gap-3">
+          <button id="confirm-clear" type="button" data-template-id="confirm-clear" class="canva-button rounded-xl px-4 py-3 font-semibold" style="background: rgb(155, 67, 47); color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Sim, apagar tudo</button><button id="cancel-clear" type="button" data-template-id="cancel-clear" class="canva-button rounded-xl border px-4 py-3 font-semibold" style="background: rgb(255, 255, 255); color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Cancelar</button>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+     <section id="panel-guidance" hidden="" aria-labelledby="guidance-heading">
+      <button type="button" data-home="" data-template-id="guidance-home-button" class="canva-button mb-4 rounded-xl px-4 py-3 font-semibold" style="background: rgb(223, 237, 231); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 16px;">← Voltar ao início</button>
+      <div data-template-id="guidance-card" class="canva-card surface rounded-[28px] p-6 sm:p-10" style="background: rgb(255, 255, 255);">
+       <div id="guidance-index">
+        <h2 id="guidance-heading" data-template-id="guidance-heading" class="canva-text display" style="font-weight: 600; font-style: normal; font-size: 24px;">Orientações</h2>
+        <p data-template-id="guidance-note" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Pequenos cuidados ajudam você a observar seu corpo e reduzir riscos durante o tratamento.</p>
+        <p data-template-id="guidance-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Escolha um tema para ver orientações gerais de autocuidado.</p>
+        <div class="mt-6 grid gap-3 sm:grid-cols-2">
+         <button type="button" data-guidance="fever" data-template-id="guidance-fever" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Febre</button><button type="button" data-guidance="nausea" data-template-id="guidance-nausea" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Náuseas e vômitos</button><button type="button" data-guidance="diarrhea" data-template-id="guidance-diarrhea" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Diarreia</button><button type="button" data-guidance="constipation" data-template-id="guidance-constipation" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Prisão de ventre</button><button type="button" data-guidance="pain" data-template-id="guidance-pain" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Dor</button><button type="button" data-guidance="mouth" data-template-id="guidance-mouth" class="canva-button question text-left font-semibold" style="color: rgb(23, 60, 59); font-weight: 400; font-style: normal; font-size: 16px;">Feridas na boca</button>
+        </div>
+       </div>
+       <div id="guidance-detail" hidden="">
+        <article id="guide-fever" hidden="">
+         <h2 data-template-id="fever-care-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Febre</h2>
+         <p data-template-id="fever-care-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Pequenos cuidados ajudam você a observar seu corpo e reduzir riscos durante o tratamento.</p>
+         <h3 data-template-id="fever-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">Como posso me cuidar?</h3>
+         <div class="mt-6 space-y-3">
+          <div data-template-id="fever-care-card-1" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">🧼</span>
+           <p data-template-id="fever-care-text-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Lave as mãos frequentemente com água e sabão.</p>
+          </div>
+          <div data-template-id="fever-care-card-2" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">🪥</span>
+           <p data-template-id="fever-care-text-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Mantenha uma boa higiene do corpo e da boca.</p>
+          </div>
+          <div data-template-id="fever-care-card-3" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">🤝</span>
+           <p data-template-id="fever-care-text-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite contato próximo com pessoas que estejam doentes</p>
+          </div>
+          <div data-template-id="fever-care-card-4" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">🩹</span>
+           <p data-template-id="fever-care-text-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Tenha cuidado para evitar cortes e machucados.</p>
+          </div>
+          <div data-template-id="fever-care-card-5" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">🔎</span>
+           <p data-template-id="fever-care-text-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Observe se aparecem feridas, vermelhidão, inchaço ou outras alterações no corpo.</p>
+          </div>
+          <div data-template-id="fever-care-card-6" class="canva-card guide-row" style="background: rgb(241, 248, 243);">
+           <span aria-hidden="true">💊</span>
+           <p data-template-id="fever-care-text-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não tome antibióticos ou medicamentos para baixar a febre por conta própria. Siga as orientações dadas pelo seu médico.</p>
+          </div>
+         </div>
+         <div data-template-id="fever-care-card-7" class="canva-card guide-row guide-warning mt-3" style="background: rgb(255, 241, 233);">
+          <span aria-hidden="true">🌡️</span>
+          <p data-template-id="fever-care-text-7" class="canva-text font-bold" style="color: rgb(112, 60, 40); font-weight: 700; font-style: normal; font-size: 16px;">Se sua temperatura for igual ou maior que 37,8 °C, procure imediatamente o serviço de saúde indicado pela sua equipe. Não espere a temperatura aumentar.</p>
+         </div>
+        </article>
+        <article id="guide-nausea" hidden="">
+         <h2 data-template-id="nausea-guide-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Náuseas e vômitos</h2>
+         <p data-template-id="nausea-guide-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">O tratamento pode causar enjoo e vômitos. Existem medicamentos que ajudam a prevenir e controlar esses sintomas.</p>
+         <h3 data-template-id="nausea-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">O que posso fazer?</h3>
+         <div class="space-y-3">
+          <div class="guide-row">
+           <span>💊</span>
+           <p data-template-id="nausea-tip-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Tome os medicamentos contra enjoo e vômito exatamente como foram prescritos pela sua equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>🕒</span>
+           <p data-template-id="nausea-tip-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não espere o enjoo começar para tomar um medicamento que foi prescrito para uso preventivo.</p>
+          </div>
+          <div class="guide-row">
+           <span>🍽️</span>
+           <p data-template-id="nausea-tip-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Faça refeições menores, várias vezes ao dia. Mastigue bem os alimentos.</p>
+          </div>
+          <div class="guide-row">
+           <span>🥘</span>
+           <p data-template-id="nausea-tip-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite alimentos muito gordurosos ou condimentados.</p>
+          </div>
+          <div class="guide-row">
+           <span>🍎</span>
+           <p data-template-id="nausea-tip-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Alimentos frios ou em temperatura ambiente podem ser mais fáceis de tolerar.</p>
+          </div>
+          <div class="guide-row">
+           <span>🌿</span>
+           <p data-template-id="nausea-tip-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Faça suas refeições em um ambiente tranquilo e, quando possível, sem odores fortes.</p>
+          </div>
+          <div class="guide-row">
+           <span>🪑</span>
+           <p data-template-id="nausea-tip-7" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite esforço físico logo após comer.</p>
+          </div>
+         </div>
+         <h3 data-template-id="nausea-help-heading" class="canva-text display mb-4 mt-8" style="font-weight: 400; font-style: normal; font-size: 19px;">Quando devo procurar ajuda?</h3>
+         <div class="guide-row guide-warning">
+          <span>🤝</span>
+          <p data-template-id="nausea-help-intro" class="canva-text" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Entre em contato com sua equipe ou procure o serviço indicado se os vômitos persistirem apesar dos medicamentos prescritos, se os sintomas estiverem piorando e se você não conseguir ingerir líquidos ou alimentos.</p>
+         </div>
+        </article>
+        <article id="guide-diarrhea" hidden="">
+         <h2 data-template-id="diarrhea-guide-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Diarreia</h2>
+         <p data-template-id="diarrhea-guide-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">A diarreia pode acontecer durante o tratamento e se caracteriza pelo aumento das evacuações e por fezes mais líquidas do que o seu habitual. Ela pode causar perda de líquidos e sais minerais, por isso é importante observar sua intensidade e duração.</p>
+         <h3 data-template-id="diarrhea-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">O que posso fazer?</h3>
+         <div class="space-y-3">
+          <div class="guide-row">
+           <span>💧</span>
+           <p data-template-id="diarrhea-tip-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Beba líquidos ao longo do dia para ajudar a evitar a desidratação, respeitando qualquer restrição de líquidos orientada pela sua equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>🍚</span>
+           <p data-template-id="diarrhea-tip-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Prefira alimentos de fácil tolerância.</p>
+          </div>
+          <div class="guide-row">
+           <span>🥘</span>
+           <p data-template-id="diarrhea-tip-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite alimentos muito gordurosos ou muito condimentados enquanto estiver com diarreia.</p>
+          </div>
+          <div class="guide-row">
+           <span>🥣</span>
+           <p data-template-id="diarrhea-tip-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Alimentos líquidos ou pastosos podem ser mais bem tolerados.</p>
+          </div>
+          <div class="guide-row">
+           <span>💊</span>
+           <p data-template-id="diarrhea-tip-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Use medicamentos contra diarreia somente se tiverem sido prescritos ou orientados pela sua equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤝</span>
+           <p data-template-id="diarrhea-tip-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não aumente a dose nem utilize outros medicamentos por conta própria.</p>
+          </div>
+         </div>
+         <h3 data-template-id="diarrhea-help-heading" class="canva-text display mb-4 mt-8" style="font-weight: 400; font-style: normal; font-size: 19px;">Quando devo procurar ajuda?</h3>
+         <div class="guide-row guide-warning">
+          <span>🤝</span>
+          <p data-template-id="diarrhea-help-intro" class="canva-text" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Entre em contato com sua equipe ou procure o serviço indicado se a a diarreia não melhorar com os medicamentos prescritos e persistir por mais de dois dias</p>
+         </div>
+        </article>
+        <article id="guide-constipation" hidden="">
+         <h2 data-template-id="constipation-guide-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Prisão de ventre</h2>
+         <p data-template-id="constipation-guide-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">A prisão de ventre acontece quando você apresenta dificuldade para evacuar ou evacua com menos frequência do que o habitual. Você também pode perceber fezes mais endurecidas, necessidade de fazer muito esforço ou sensação de que não conseguiu evacuar completamente.</p>
+         <h3 data-template-id="constipation-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">O que posso fazer?</h3>
+         <div class="space-y-3">
+          <div class="guide-row">
+           <span>💧</span>
+           <p data-template-id="constipation-tip-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Beba líquidos ao longo do dia, respeitando qualquer restrição orientada pela sua equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>🍐</span>
+           <p data-template-id="constipation-tip-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Se forem bem tolerados, inclua alimentos ricos em fibras, como frutas, verduras, legumes e cereais integrais.</p>
+          </div>
+          <div class="guide-row">
+           <span>🚶</span>
+           <p data-template-id="constipation-tip-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Faça atividades leves, como pequenas caminhadas, se sua condição permitir.</p>
+          </div>
+          <div class="guide-row">
+           <span>🕒</span>
+           <p data-template-id="constipation-tip-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Procure estabelecer um horário regular para ir ao banheiro.</p>
+          </div>
+          <div class="guide-row">
+           <span>🚻</span>
+           <p data-template-id="constipation-tip-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não ignore a vontade de evacuar.</p>
+          </div>
+          <div class="guide-row">
+           <span>💊</span>
+           <p data-template-id="constipation-tip-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Use laxantes ou outros medicamentos somente conforme orientação da equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤝</span>
+           <p data-template-id="constipation-tip-7" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não aumente doses nem utilize novos medicamentos por conta própria.</p>
+          </div>
+         </div>
+         <div class="guide-row guide-warning mt-7">
+          <span>🤝</span>
+          <p data-template-id="constipation-help" class="canva-text" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Procure o serviço indicado pela equipe se a prisão de ventre estiver acompanhada de dor abdominal intensa ou progressiva, aumento importante do volume da barriga, vômitos ou não apresentar melhoras mesmo utilizando os medicamentos prescritos;</p>
+         </div>
+        </article>
+        <article id="guide-pain" hidden="">
+         <h2 data-template-id="pain-guide-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Dor</h2>
+         <p data-template-id="pain-guide-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">A dor pode surgir por diferentes motivos durante o tratamento. Por isso, é importante observar onde dói, quanto dói, quando começou e se está melhorando ou piorando. Registrar essas informações pode ajudar sua equipe a entender melhor o que você está sentindo</p>
+         <h3 data-template-id="pain-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">O que posso fazer?</h3>
+         <div class="space-y-3">
+          <div class="guide-row">
+           <span>💊</span>
+           <p data-template-id="pain-tip-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Use os medicamentos para dor exatamente como foram prescritos.</p>
+          </div>
+          <div class="guide-row">
+           <span>📏</span>
+           <p data-template-id="pain-tip-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não aumente ou diminua a dose por conta própria.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤝</span>
+           <p data-template-id="pain-tip-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não associe outros medicamentos sem orientação.</p>
+          </div>
+          <div class="guide-row">
+           <span>🔎</span>
+           <p data-template-id="pain-tip-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Observe se o medicamento prescrito está proporcionando alívio.</p>
+          </div>
+          <div class="guide-row">
+           <span>🪑</span>
+           <p data-template-id="pain-tip-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite atividades que estejam piorando a dor.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤲</span>
+           <p data-template-id="pain-tip-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Utilize medidas de conforto que já tenham sido orientadas pela sua equipe.</p>
+          </div>
+          <div class="guide-row">
+           <span>💬</span>
+           <p data-template-id="pain-tip-7" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Avise a equipe se a dor estiver aumentando ou se o tratamento prescrito não estiver controlando adequadamente o sintoma.</p>
+          </div>
+         </div>
+         <div class="guide-row guide-warning mt-7">
+          <span>🤝</span>
+          <p data-template-id="pain-help" class="canva-text" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Procure o serviço indicado pela equipe em caso de dor muito intensa e de início súbito, que piora rapidamente, dor acompanhada de falta de ar ou dor no peito, dor acompanhada de desmaio, confusão ou alteração importante do estado geral; dor nova e intensa na coluna acompanhada de fraqueza ou perda de sensibilidade nas pernas, dificuldade para caminhar ou alteração recente no controle da urina ou das fezes.</p>
+         </div>
+        </article>
+        <article id="guide-mouth" hidden="">
+         <h2 data-template-id="mouth-guide-title" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Feridas na boca</h2>
+         <p data-template-id="mouth-guide-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">O tratamento pode deixar a boca mais sensível e causar vermelhidão, ardência ou feridas parecidas com aftas. Essas alterações podem dificultar a alimentação e a ingestão de líquidos.</p>
+         <h3 data-template-id="mouth-care-heading" class="canva-text display mb-4 mt-7" style="font-weight: 400; font-style: normal; font-size: 19px;">O que posso fazer?</h3>
+         <div class="space-y-3">
+          <div class="guide-row">
+           <span>🪞</span>
+           <p data-template-id="mouth-tip-1" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Observe sua boca todos os dias.</p>
+          </div>
+          <div class="guide-row">
+           <span>🪥</span>
+           <p data-template-id="mouth-tip-2" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Mantenha os dentes, a língua e a boca limpos.</p>
+          </div>
+          <div class="guide-row">
+           <span>🫧</span>
+           <p data-template-id="mouth-tip-3" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Faça a higiene com cuidado, principalmente após as refeições.</p>
+          </div>
+          <div class="guide-row">
+           <span>🪥</span>
+           <p data-template-id="mouth-tip-4" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Utilize escova de dentes com cerdas macias.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤲</span>
+           <p data-template-id="mouth-tip-5" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite machucar a boca durante a escovação.</p>
+          </div>
+          <div class="guide-row">
+           <span>🍽️</span>
+           <p data-template-id="mouth-tip-6" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Evite alimentos muito ácidos, condimentados, duros ou muito quentes.</p>
+          </div>
+          <div class="guide-row">
+           <span>💊</span>
+           <p data-template-id="mouth-tip-7" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Se algum enxaguatório, medicamento ou produto para a boca tiver sido prescrito pela sua equipe, utilize exatamente como orientado.</p>
+          </div>
+          <div class="guide-row">
+           <span>🤝</span>
+           <p data-template-id="mouth-tip-8" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Não comece a usar produtos ou medicamentos por conta própria para tratar as feridas.</p>
+          </div>
+         </div>
+        </article>
+        <p data-template-id="guidance-disclaimer" class="canva-banner mt-6 rounded-xl bg-[#fff1e9] p-4" style="color: rgb(112, 60, 40); font-weight: 400; font-style: normal; font-size: 16px;">Estas orientações gerais não substituem a avaliação de um profissional de saúde e não alteram seu tratamento.</p>
+        <button id="guidance-back" type="button" data-template-id="guidance-back" class="canva-button mt-6 w-full rounded-2xl border border-[#c8d9d0] px-5 py-4 font-semibold" style="background: rgb(255, 255, 255); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 16px;">Voltar para Orientações</button>
+       </div>
+      </div>
+     </section>
+     <section id="panel-treatment" hidden="" aria-labelledby="treatment-heading">
+      <button type="button" data-home="" data-template-id="treatment-home-button" class="canva-button mb-4 rounded-xl px-4 py-3 font-semibold" style="background: rgb(223, 237, 231); color: rgb(23, 110, 101); font-weight: 400; font-style: normal; font-size: 16px;">← Voltar ao início</button>
+      <div data-template-id="treatment-card" class="canva-card surface rounded-[28px] p-6 sm:p-10" style="background: rgb(255, 255, 255);">
+       <h2 id="treatment-heading" data-template-id="treatment-heading" class="canva-text display" style="font-weight: 400; font-style: normal; font-size: 24px;">Minha agenda de tratamento</h2>
+       <p data-template-id="treatment-intro" class="canva-text mt-3" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Organize as datas dos seus ciclos de quimioterapia e consultas. Você pode registrar seus compromissos e consultar suas marcações sempre que precisar.</p>
+       <div class="mt-6 flex flex-wrap gap-3">
+        <div>
+         <label data-template-id="treatment-month-label" for="treatment-month" class="canva-text mb-2 block font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Mês</label><select id="treatment-month" class="field"></select>
+        </div>
+        <div>
+         <label data-template-id="treatment-year-label" for="treatment-year" class="canva-text mb-2 block font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Ano</label><select id="treatment-year" class="field"></select>
+        </div>
+       </div>
+       <fieldset class="mt-6">
+        <legend data-template-id="treatment-marker-label" class="canva-text mb-3 font-semibold" style="font-weight: 600; font-style: normal; font-size: 16px;">Escolha o tipo de marcação antes de tocar em um dia</legend>
+        <div class="choice-grid">
+         <label class="treatment-option last"><span aria-hidden="true">✓</span><input type="radio" name="treatment-marker" value="last" checked=""><span data-template-id="marker-last" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Ciclo realizado</span></label><label class="treatment-option next"><span aria-hidden="true">→</span><input type="radio" name="treatment-marker" value="next"><span data-template-id="marker-next" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Próximo ciclo agendado</span></label><label class="treatment-option appointment"><span aria-hidden="true">✦</span><input type="radio" name="treatment-marker" value="appointment"><span data-template-id="marker-appointment" class="canva-text" style="font-weight: 400; font-style: normal; font-size: 16px;">Dia de consulta</span></label>
+        </div>
+       </fieldset>
+       <div id="treatment-calendar" class="mt-6 grid grid-cols-7 gap-1" aria-label="Calendário"></div>
+       <div id="treatment-confirmation" class="treatment-confirm mt-5" hidden="">
+        <p data-template-id="treatment-selected-date" class="canva-text font-semibold" style="color: rgb(23, 60, 59); font-weight: 700;"></p>
+        <p id="treatment-selected-type" class="mt-2 font-semibold" aria-live="polite"></p>
+        <button id="save-treatment-mark" type="button" data-template-id="save-treatment-mark" class="canva-button mt-4 w-full rounded-2xl px-5 py-4 font-bold" style="background: rgb(23, 110, 101); color: rgb(255, 255, 255); font-weight: 700;">Salvar marcação</button>
+       </div>
+       <div class="mt-6 flex flex-wrap gap-3">
+        <span data-template-id="legend-last" class="canva-tag rounded-full bg-[#dfede7] px-3 py-2" style="font-weight: 400; font-style: normal; font-size: 16px;">Último ciclo</span><span data-template-id="legend-next" class="canva-tag rounded-full bg-[#dce9f8] px-3 py-2" style="font-weight: 400; font-style: normal; font-size: 16px;">Próximo ciclo</span><span data-template-id="legend-appointment" class="canva-tag rounded-full bg-[#fff1e9] px-3 py-2" style="font-weight: 400; font-style: normal; font-size: 16px;">Consulta</span>
+       </div>
+       <h3 data-template-id="treatment-summary-heading" class="canva-text mt-7 font-bold" style="font-weight: 700; font-style: normal; font-size: 19px;">Minhas marcações</h3>
+       <div id="treatment-summary" class="mt-3 space-y-2" aria-live="polite"></div>
+       <p data-template-id="treatment-local-note" class="canva-text mt-5 rounded-xl bg-[#f1f8f3] p-4" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Suas marcações ficam salvas neste dispositivo. Elas não são atualizadas automaticamente pela equipe de saúde.</p>
+      </div>
+     </section>
+    </main>
+    <footer class="mt-8">
+     <p data-template-id="footer-note" class="canva-text leading-relaxed" style="color: rgb(82, 108, 104); font-weight: 400; font-style: normal; font-size: 16px;">Suas observações podem ajudar na conversa com profissionais de saúde, mas não substituem a avaliação deles.</p>
+    </footer>
+   </div>
+  </div>
+  <template id="local-record-template">
+   <article data-template-id="local-record-card" class="canva-card rounded-2xl border-l-4 border-[#176e65] p-4">
+    <h3 data-template-id="local-record-symptom" class="canva-text break-words font-bold"></h3>
+    <p data-template-id="local-record-intensity" class="canva-text mt-2"></p>
+    <p data-template-id="local-record-frequency" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-liquids" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-food" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-vomit" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-temperature" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-associated" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-other" class="canva-text mt-1" hidden=""></p>
+    <p data-template-id="local-record-date" class="canva-text mt-2"></p>
+   </article>
+  </template>
+  <script>
+const $=id=>document.getElementById(id);
+const selected=name=>document.querySelector('input[name="'+name+'"]:checked')?.value||'';
+function openPanel(name){['intro','about','symptoms','guidance','treatment'].forEach(n=>$('panel-'+n).hidden=n!==name);$('tab-intro').setAttribute('aria-current',name==='intro'?'page':'false');$('tab-about').setAttribute('aria-current',name==='about'?'page':'false');if(name==='symptoms'){showScreen('symptom-home');refreshRegistered()}window.scrollTo({top:0,behavior:'smooth'})}
+$('tab-intro').addEventListener('click',()=>openPanel('intro'));$('tab-about').addEventListener('click',()=>openPanel('about'));$('start-button').addEventListener('click',()=>openPanel('symptoms'));document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.open)));document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>{openPanel('intro');$('tab-intro').focus()}));document.querySelector('[data-symptoms-home]').addEventListener('click',()=>{openPanel('symptoms');$('symptoms-heading').focus()});
+const guideIds=['fever','nausea','diarrhea','constipation','pain','mouth'];document.querySelectorAll('[data-guidance]').forEach(button=>button.addEventListener('click',()=>{guideIds.forEach(id=>$('guide-'+id).hidden=id!==button.dataset.guidance);$('guidance-index').hidden=true;$('guidance-detail').hidden=false;$('guidance-back').focus()}));$('guidance-back').addEventListener('click',()=>{$('guidance-detail').hidden=true;$('guidance-index').hidden=false;document.querySelector('[data-guidance]').focus()});
+const treatmentKey='diarioSintomasTratamento',months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];let treatmentMarks={};try{treatmentMarks=JSON.parse(localStorage.getItem(treatmentKey)||'{}')||{}}catch(_){}const today=new Date();months.forEach((name,i)=>$('treatment-month').add(new Option(name,i)));for(let y=today.getFullYear()-2;y<=today.getFullYear()+5;y++)$('treatment-year').add(new Option(y,y));$('treatment-month').value=today.getMonth();$('treatment-year').value=today.getFullYear();
+function saveMarks(){try{localStorage.setItem(treatmentKey,JSON.stringify(treatmentMarks))}catch(_){}renderTreatment()}
+function renderTreatment(){const y=+$('treatment-year').value,m=+$('treatment-month').value,cal=$('treatment-calendar');cal.replaceChildren();['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(day=>{const el=document.createElement('div');el.className='p-2 text-center text-xs font-bold text-[#526c68]';el.textContent=day;cal.append(el)});for(let i=0;i<new Date(y,m,1).getDay();i++)cal.append(document.createElement('div'));for(let d=1;d<=new Date(y,m+1,0).getDate();d++){const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),el=document.createElement('button');el.type='button';el.textContent=d;el.className='treatment-day min-h-12 rounded-xl border border-[#d6e4dd] bg-white p-1 font-semibold';const mark=treatmentMarks[key];if(mark==='last')el.classList.add('!bg-[#dfede7]','!border-[#176e65]');if(mark==='next')el.classList.add('!bg-[#dce9f8]','!border-[#4776a8]');if(mark==='appointment')el.classList.add('!bg-[#fff1e9]','!border-[#b66d45]');const now=new Date();if(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate())el.classList.add('is-today');el.setAttribute('aria-label',d+' de '+months[m]+(mark?' — '+mark:''));el.addEventListener('click',()=>{const type=selected('treatment-marker');window.selectedTreatmentDate=key;window.selectedTreatmentType=type;$('treatment-confirmation').hidden=false;$('treatment-selected-date').textContent='Data selecionada: '+d+' de '+months[m]+' de '+y;$('treatment-selected-type').textContent='Tipo: '+({last:'Ciclo realizado',next:'Próximo ciclo',appointment:'Dia de consulta'}[type]||type);document.querySelectorAll('.treatment-day.is-selected').forEach(day=>day.classList.remove('is-selected'));el.classList.add('is-selected');$('save-treatment-mark').focus()});cal.append(el)}const summary=$('treatment-summary');summary.replaceChildren();const labels={last:'Último ciclo de quimioterapia',next:'Próximo ciclo agendado',appointment:'Dia de consulta'};Object.entries(treatmentMarks).sort().forEach(([key,type])=>{const row=document.createElement('div');row.className='flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#d6e4dd] bg-white p-3';const text=document.createElement('span');text.textContent=key.split('-').reverse().join('/')+' — '+(labels[type]||type);const remove=document.createElement('button');remove.type='button';remove.className='font-bold text-[#9b432f]';remove.textContent='Remover';remove.setAttribute('aria-label','Remover marcação de '+key);remove.addEventListener('click',()=>{delete treatmentMarks[key];saveMarks()});row.append(text,remove);summary.append(row)})}$('save-treatment-mark').addEventListener('click',()=>{const key=window.selectedTreatmentDate,type=window.selectedTreatmentType;if(!key||!type)return;if(type!=='appointment')Object.keys(treatmentMarks).forEach(k=>{if(treatmentMarks[k]===type)delete treatmentMarks[k]});treatmentMarks[key]=type;$('treatment-confirmation').hidden=true;saveMarks()});$('treatment-month').addEventListener('change',renderTreatment);$('treatment-year').addEventListener('change',renderTreatment);renderTreatment();
+const localKey='diarioSintomas',form=$('local-form'),range=$('local-intensity'),groups={'Febre':'fever','Náusea':'nausea','Diarreia':'diarrhea','Prisão de ventre':'constipation','Feridas na boca':'mouth'};let selectedSymptom='';
+function showScreen(id){['symptom-home','symptom-form-screen','symptom-history-screen'].forEach(name=>$(name).hidden=name!==id)}
+function readHistory(){const data=JSON.parse(localStorage.getItem(localKey)||'[]');if(!Array.isArray(data))throw Error('Formato inválido');return data}
+function refreshRegistered(){try{const existing=new Set(readHistory().map(r=>r.symptom??r.sintoma));document.querySelectorAll('[data-symptom]').forEach(b=>{const registered=existing.has(b.dataset.symptom);b.classList.toggle('is-registered',registered);b.setAttribute('aria-label',b.dataset.symptom+(registered?' — registrado':''))})}catch(_){document.querySelectorAll('[data-symptom]').forEach(b=>b.classList.remove('is-registered'))}}
+function temperature(){const v=$('fever-temperature').value.trim().replace(',','.');return /^\d{1,2}(?:\.\d{1,2})?$/.test(v)?Number(v):null}
+function updateAlerts(){$('fever-alert').hidden=selectedSymptom!=='Febre'||!(temperature()>=37.8);$('nausea-alert').hidden=!(selectedSymptom==='Náusea'&&selected('nausea-liquids')==='Nada'&&selected('nausea-food')==='Nada'&&selected('nausea-vomit')==='Várias vezes')}
+$('fever-temperature').addEventListener('input',updateAlerts);['nausea-liquids','nausea-food','nausea-vomit'].forEach(name=>document.querySelectorAll('input[name="'+name+'"]').forEach(el=>el.addEventListener('change',updateAlerts)));
+['fever','diarrhea','constipation','mouth'].forEach(group=>$(group+'-other-check').addEventListener('change',()=>{const checked=$(group+'-other-check').checked;$(group+'-other-wrap').hidden=!checked;if(!checked)$(group+'-other-text').value=''}));['pain-location','pain-quality'].forEach(group=>$(group+'-other-check').addEventListener('change',()=>{const checked=$(group+'-other-check').checked;$(group+'-other-wrap').hidden=!checked;if(!checked)$(group+'-other-text').value=''}));
+document.querySelectorAll('[data-symptom]').forEach(button=>button.addEventListener('click',()=>{selectedSymptom=button.dataset.symptom;$('selected-symptom').textContent=selectedSymptom;form.reset();['fever','nausea','diarrhea','constipation','mouth'].forEach(group=>{const visible=groups[selectedSymptom]===group;$(group+'-fields').hidden=!visible;$(group+'-fields').querySelectorAll('input,select,textarea').forEach(el=>el.disabled=!visible);if(group!=='nausea')$(group+'-other-wrap').hidden=true});const fever=selectedSymptom==='Febre';$('intensity-fields').hidden=fever;$('fever-intro').hidden=!fever;const general=!['Náusea','Diarreia','Prisão de ventre','Feridas na boca','Dor'].includes(selectedSymptom);$('general-frequency-wrap').hidden=!general;$('pain-fields').hidden=selectedSymptom!=='Dor';$('pain-fields').querySelectorAll('input,textarea').forEach(el=>el.disabled=selectedSymptom!=='Dor');$('general-frequency-wrap').querySelectorAll('input').forEach(el=>el.disabled=!general);$('intensity-value').textContent=range.value;$('local-status').textContent='';updateAlerts();showScreen('symptom-form-screen');(fever?$('fever-temperature'):range).focus()}));
+range.addEventListener('input',()=>$('intensity-value').textContent=range.value);$('cancel-local').addEventListener('click',()=>{showScreen('symptom-home');refreshRegistered()});
+function fillLine(card,id,label,value){if(value===undefined||value===null||value==='')return;const line=card.querySelector('[data-template-id="'+id+'"]');line.textContent=label+String(value);line.hidden=false}
+function renderHistory(records){const target=$('local-record-list');target.replaceChildren();$('local-empty').hidden=records.length!==0;records.forEach(record=>{const card=$('local-record-template').content.firstElementChild.cloneNode(true),date=new Date(record.date);card.querySelector('[data-template-id="local-record-symptom"]').textContent=String(record.symptom??record.sintoma??'Sintoma não informado');card.querySelector('[data-template-id="local-record-intensity"]').textContent='Intensidade: '+String(record.intensity??record.intensidade??'—')+'/10';fillLine(card,'local-record-frequency',record.symptom==='Diarreia'?'Evacuações nas últimas 24h: ':record.symptom==='Náusea'?'Frequência do enjoo: ':'Frequência: ',record.frequency??record.frequencia);fillLine(card,'local-record-liquids','Líquidos: ',record.liquids);fillLine(card,'local-record-food','Alimentação: ',record.food);fillLine(card,'local-record-vomit','Vômitos nas últimas 24h: ',record.vomiting);if(record.temperature!==undefined&&record.temperature!==null&&record.temperature!=='')fillLine(card,'local-record-temperature','Temperatura: ',String(record.temperature).replace('.',',')+' ºC');if(Array.isArray(record.associatedSymptoms)&&record.associatedSymptoms.length)fillLine(card,'local-record-associated','Sintomas associados: ',record.associatedSymptoms.map(String).join(', '));if(Array.isArray(record.painLocations)&&record.painLocations.length)fillLine(card,'local-record-associated','Local da dor: ',record.painLocations.join(', '));if(Array.isArray(record.painQualities)&&record.painQualities.length)fillLine(card,'local-record-other','Característica da dor: ',record.painQualities.join(', '));fillLine(card,'local-record-other','Outros sintomas: ',record.otherSymptoms);fillLine(card,'local-record-other','Observações sobre a dor: ',record.painNotes);card.querySelector('[data-template-id="local-record-date"]').textContent=Number.isNaN(date.getTime())?String(record.date??'Data não disponível'):new Intl.DateTimeFormat('pt-BR',{dateStyle:'medium',timeStyle:'short'}).format(date);target.append(card)})}
+function openHistory(){$('history-status').textContent='';$('clear-confirmation').hidden=true;try{renderHistory(readHistory());showScreen('symptom-history-screen');$('home-status').textContent='';refreshRegistered()}catch(_){$('home-status').textContent='Não foi possível abrir o histórico neste dispositivo.';$('local-status').textContent=$('home-status').textContent}}$('open-local-history').addEventListener('click',openHistory);
+form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity()||!selectedSymptom)return;const record={symptom:selectedSymptom,intensity:Number(range.value),date:new Date().toISOString()};if(selectedSymptom==='Febre'){if($('fever-temperature').value.trim()&&temperature()===null){$('local-status').textContent='Confira a temperatura. Use um valor em ºC, como 38,2.';$('fever-temperature').focus();return}if(temperature()!==null)record.temperature=temperature()}if(selectedSymptom==='Náusea'){record.liquids=selected('nausea-liquids');record.food=selected('nausea-food');record.frequency=selected('nausea-frequency');record.vomiting=selected('nausea-vomit')}else if(selectedSymptom==='Diarreia')record.frequency=selected('diarrhea-frequency');else if(selectedSymptom==='Dor'){record.frequency=selected('pain-frequency');record.painLocations=[...document.querySelectorAll('input[name="pain-location"]:checked')].map(input=>input.value);record.painQualities=[...document.querySelectorAll('input[name="pain-quality"]:checked')].map(input=>input.value);record.painImpact=selected('pain-impact');record.painNotes=$('pain-notes').value.trim();if($('pain-location-other-check').checked)record.painLocationOther=$('pain-location-other-text').value.trim();if($('pain-quality-other-check').checked)record.painQualityOther=$('pain-quality-other-text').value.trim()}else if(!['Prisão de ventre','Feridas na boca'].includes(selectedSymptom))record.frequency=selected('local-frequency');const group=groups[selectedSymptom];if(group&&group!=='nausea'){record.associatedSymptoms=[...document.querySelectorAll('input[name="'+group+'-associated"]:checked')].map(input=>input.value);if($(group+'-other-check').checked){const other=$(group+'-other-text').value.trim();if(other)record.otherSymptoms=other}}try{const history=readHistory();history.unshift(record);localStorage.setItem(localKey,JSON.stringify(history));openHistory()}catch(_){$('local-status').textContent='Não foi possível salvar neste dispositivo. Confira se o armazenamento do navegador está disponível.'}});
+$('new-local').addEventListener('click',()=>{showScreen('symptom-home');refreshRegistered()});$('request-clear').addEventListener('click',()=>{$('history-status').textContent='';$('clear-confirmation').hidden=false;$('confirm-clear').focus()});$('cancel-clear').addEventListener('click',()=>{$('clear-confirmation').hidden=true;$('request-clear').focus()});$('confirm-clear').addEventListener('click',()=>{try{localStorage.removeItem(localKey);$('clear-confirmation').hidden=true;renderHistory([]);refreshRegistered();$('history-status').textContent='Histórico apagado deste dispositivo.';$('new-local').focus()}catch(_){$('history-status').textContent='Não foi possível apagar o histórico neste dispositivo.'}});
+refreshRegistered();if(window.lucide)lucide.createIcons();
+</script>
+ 
+</body></html>
